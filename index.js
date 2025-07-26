@@ -1,203 +1,319 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, Trophy, Coins, Users, Zap, Shield, Database, Network } from 'lucide-react';
+import { Play, Pause, RotateCcw, Trophy, Coins, Users, Monitor, Smartphone, Server, Router, Wifi, HardDrive } from 'lucide-react';
 
 const HackittyGame = () => {
-  const [gameState, setGameState] = useState('menu'); // menu, playing, paused, level-complete
+  const [gameState, setGameState] = useState('menu');
   const [currentLevel, setCurrentLevel] = useState(1);
-  const [playerPosition, setPlayerPosition] = useState({ x: 1, y: 1 });
-  const [mousePosition, setMousePosition] = useState({ x: 8, y: 8 });
+  const [playerPosition, setPlayerPosition] = useState({ x: 0, y: 0 });
+  const [mousePosition, setMousePosition] = useState({ x: 9, y: 9 });
   const [cyberCoins, setCyberCoins] = useState(0);
   const [collectibles, setCollectibles] = useState([]);
   const [playerSkills, setPlayerSkills] = useState([]);
-  const [mouseSkills, setMouseSkills] = useState([]);
-  const [gameGrid, setGameGrid] = useState([]);
+  const [networkGrid, setNetworkGrid] = useState([]);
   const [language, setLanguage] = useState('en');
-  const [moveCount, setMoveCount] = useState(0);
-  const [isMouseMoving, setIsMouseMoving] = useState(false);
+  const [commandPool, setCommandPool] = useState([]);
+  const [tracingProgram, setTracingProgram] = useState([]);
+  const [isExecutingProgram, setIsExecutingProgram] = useState(false);
+  const [mainframeCompromised, setMainframeCompromised] = useState(0);
 
   const text = {
     en: {
       title: "HACKITTY",
-      subtitle: "Chase the Cyber Mouse Through the Network!",
+      subtitle: "Stop the Cyber Mouse from Taking Over the Network!",
       play: "Play",
       pause: "Pause",
       reset: "Reset Level",
       level: "Level",
       coins: "CyberCoins",
       skills: "Skills Unlocked",
-      caught: "Mouse Caught!",
-      escaped: "Mouse Escaped!",
-      parentMode: "Ask Parents to Design a Maze!",
-      difficulty: "Difficulty Level",
-      instructions: "Move Hackitty to catch the cyber mouse before it collects all the data crystals!",
-      collectiblesTitle: "Collectibles & CS Concepts",
+      caught: "Network Secured!",
+      escaped: "Mainframe Compromised!",
+      parentMode: "Ask Parents to Design a Network!",
+      instructions: "Program Hackitty's trace route to stop the cyber mouse from reaching the mainframe!",
+      collectiblesTitle: "Network Security Tools & CS Concepts",
       howToPlayTitle: "How to Play",
       howToPlay: [
-        "🐱 You are Hackitty, a cyber-detective cat",
-        "🐭 Chase the AI cyborg mouse through the network",
-        "💎 Collect data crystals to learn CS concepts",
-        "⚡ Unlock new abilities with each collectible",
-        "🏆 Catch the mouse before it escapes!"
-      ]
+        "🐱 You are Hackitty, a network security specialist",
+        "🐭 Stop the AI cyborg mouse from compromising the mainframe",
+        "🔧 Collect security tools and learn CS concepts",
+        "⚡ Program your trace route using drag-and-drop commands",
+        "🛡️ Secure the network before it's too late!"
+      ],
+      commandPool: "Available Commands",
+      tracingProgram: "Tracing Program",
+      executeProgram: "Execute Trace",
+      clearProgram: "Clear Program",
+      mainframeStatus: "Mainframe Security",
+      networkNodes: "Network Topology"
     },
     es: {
       title: "HACKITTY",
-      subtitle: "¡Persigue al Ratón Cyber por la Red!",
+      subtitle: "¡Detén al Ratón Cyber de Tomar Control de la Red!",
       play: "Jugar",
       pause: "Pausa",
       reset: "Reiniciar Nivel",
       level: "Nivel",
       coins: "CiberMonedas",
       skills: "Habilidades Desbloqueadas",
-      caught: "¡Ratón Capturado!",
-      escaped: "¡El Ratón Escapó!",
-      parentMode: "¡Pide a tus Padres que Diseñen un Laberinto!",
-      difficulty: "Nivel de Dificultad",
-      instructions: "¡Mueve a Hackitty para atrapar al ratón cyber antes de que recoja todos los cristales de datos!",
-      collectiblesTitle: "Coleccionables y Conceptos de Ciencias de la Computación",
+      caught: "¡Red Asegurada!",
+      escaped: "¡Servidor Principal Comprometido!",
+      parentMode: "¡Pide a tus Padres que Diseñen una Red!",
+      instructions: "¡Programa la ruta de rastreo de Hackitty para detener al ratón cyber antes de que llegue al servidor principal!",
+      collectiblesTitle: "Herramientas de Seguridad de Red y Conceptos de CC",
       howToPlayTitle: "Cómo Jugar",
       howToPlay: [
-        "🐱 Eres Hackitty, un gato cyber-detective",
-        "🐭 Persigue al ratón cyborg IA por la red",
-        "💎 Recoge cristales de datos para aprender conceptos de CC",
-        "⚡ Desbloquea nuevas habilidades con cada coleccionable",
-        "🏆 ¡Atrapa al ratón antes de que escape!"
-      ]
+        "🐱 Eres Hackitty, un especialista en seguridad de redes",
+        "🐭 Detén al ratón cyborg IA de comprometer el servidor principal",
+        "🔧 Recoge herramientas de seguridad y aprende conceptos de CC",
+        "⚡ Programa tu ruta de rastreo usando comandos arrastrar y soltar",
+        "🛡️ ¡Asegura la red antes de que sea demasiado tarde!"
+      ],
+      commandPool: "Comandos Disponibles",
+      tracingProgram: "Programa de Rastreo",
+      executeProgram: "Ejecutar Rastreo",
+      clearProgram: "Limpiar Programa",
+      mainframeStatus: "Seguridad del Servidor Principal",
+      networkNodes: "Topología de Red"
     }
   };
 
   const collectibleTypes = [
     {
-      id: 'algorithm',
+      id: 'firewall',
       name: {
-        en: 'Algorithm Gem',
-        es: 'Gema de Algoritmo'
+        en: 'Firewall Protocol',
+        es: 'Protocolo Firewall'
       },
-      icon: '💎',
+      icon: '🛡️',
       concept: {
-        en: 'Algorithm - Step-by-step instructions for solving problems',
-        es: 'Algoritmo - Instrucciones paso a paso para resolver problemas'
+        en: 'Firewall - Network security barrier that filters traffic',
+        es: 'Firewall - Barrera de seguridad que filtra el tráfico de red'
       },
       skill: {
-        en: 'Unlocks: Auto-pathfinding to nearest collectible',
-        es: 'Desbloquea: Búsqueda automática al coleccionable más cercano'
+        en: 'Unlocks: Block command - stops mouse for 1 turn',
+        es: 'Desbloquea: Comando bloquear - detiene al ratón por 1 turno'
       },
-      coins: 10
-    },
-    {
-      id: 'loop',
-      name: {
-        en: 'Loop Crystal',
-        es: 'Cristal de Bucle'
-      },
-      icon: '🔄',
-      concept: {
-        en: 'Loop - Repeats actions automatically until a condition is met',
-        es: 'Bucle - Repite acciones automáticamente hasta que se cumple una condición'
-      },
-      skill: {
-        en: 'Unlocks: Multi-move ability (move 2 spaces at once)',
-        es: 'Desbloquea: Habilidad multi-movimiento (mover 2 espacios a la vez)'
-      },
+      command: 'BLOCK',
       coins: 15
-    },
-    {
-      id: 'binary',
-      name: {
-        en: 'Binary Token',
-        es: 'Token Binario'
-      },
-      icon: '⚡',
-      concept: {
-        en: 'Binary - Computer language using only 0s and 1s',
-        es: 'Binario - Lenguaje de computadora usando solo 0s y 1s'
-      },
-      skill: {
-        en: 'Unlocks: Phase through one barrier per level',
-        es: 'Desbloquea: Atravesar una barrera por nivel'
-      },
-      coins: 20
     },
     {
       id: 'encryption',
       name: {
-        en: 'Crypto Shield',
-        es: 'Escudo Cripto'
+        en: 'Encryption Key',
+        es: 'Clave de Encriptación'
       },
-      icon: '🛡️',
+      icon: '🔐',
       concept: {
-        en: 'Encryption - Scrambles data to keep it secure',
-        es: 'Encriptación - Codifica datos para mantenerlos seguros'
+        en: 'Encryption - Scrambles data to protect it from unauthorized access',
+        es: 'Encriptación - Codifica datos para protegerlos del acceso no autorizado'
       },
       skill: {
-        en: 'Unlocks: Immunity to mouse traps for 3 moves',
-        es: 'Desbloquea: Inmunidad a trampas del ratón por 3 movimientos'
+        en: 'Unlocks: Encrypt command - makes you invisible for 2 moves',
+        es: 'Desbloquea: Comando encriptar - te hace invisible por 2 movimientos'
       },
+      command: 'ENCRYPT',
+      coins: 20
+    },
+    {
+      id: 'tracer',
+      name: {
+        en: 'Network Tracer',
+        es: 'Rastreador de Red'
+      },
+      icon: '📡',
+      concept: {
+        en: 'Packet Tracing - Follows data packets through network paths',
+        es: 'Rastreo de Paquetes - Sigue paquetes de datos por rutas de red'
+      },
+      skill: {
+        en: 'Unlocks: Trace command - reveals mouse next 3 moves',
+        es: 'Desbloquea: Comando rastrear - revela próximos 3 movimientos del ratón'
+      },
+      command: 'TRACE',
       coins: 25
+    },
+    {
+      id: 'antivirus',
+      name: {
+        en: 'Antivirus Scanner',
+        es: 'Escáner Antivirus'
+      },
+      icon: '🦠',
+      concept: {
+        en: 'Antivirus - Software that detects and removes malicious code',
+        es: 'Antivirus - Software que detecta y elimina código malicioso'
+      },
+      skill: {
+        en: 'Unlocks: Scan command - teleport to any network node',
+        es: 'Desbloquea: Comando escanear - teletransporte a cualquier nodo de red'
+      },
+      command: 'SCAN',
+      coins: 30
     }
   ];
 
-  // Initialize game grid
+  const availableCommands = [
+    { id: 'MOVE_UP', name: 'MOVE ↑', description: 'Move one node up', color: 'bg-blue-600' },
+    { id: 'MOVE_DOWN', name: 'MOVE ↓', description: 'Move one node down', color: 'bg-blue-600' },
+    { id: 'MOVE_LEFT', name: 'MOVE ←', description: 'Move one node left', color: 'bg-blue-600' },
+    { id: 'MOVE_RIGHT', name: 'MOVE →', description: 'Move one node right', color: 'bg-blue-600' },
+    { id: 'LOOP_3', name: 'LOOP 3x', description: 'Repeat next command 3 times', color: 'bg-purple-600' }
+  ];
+
   useEffect(() => {
-    initializeLevel(currentLevel);
+    initializeNetwork(currentLevel);
   }, [currentLevel]);
 
-  const initializeLevel = (level) => {
-    const size = Math.min(10, 6 + level);
-    const grid = Array(size).fill(null).map(() => Array(size).fill('empty'));
+  const initializeNetwork = (level) => {
+    const size = 10;
+    const grid = Array(size).fill(null).map(() => Array(size).fill({ type: 'empty' }));
     
-    // Add barriers
-    const barrierCount = Math.floor(size * 0.3);
-    for (let i = 0; i < barrierCount; i++) {
-      const x = Math.floor(Math.random() * size);
-      const y = Math.floor(Math.random() * size);
-      if (!(x === 1 && y === 1) && !(x === size-2 && y === size-2)) {
-        grid[y][x] = 'barrier';
+    const nodePositions = [
+      { x: 0, y: 0, type: 'workstation' },
+      { x: 2, y: 0, type: 'router' },
+      { x: 4, y: 0, type: 'server' },
+      { x: 6, y: 0, type: 'workstation' },
+      { x: 8, y: 0, type: 'smartphone' },
+      { x: 0, y: 2, type: 'smartphone' },
+      { x: 2, y: 2, type: 'switch' },
+      { x: 4, y: 2, type: 'router' },
+      { x: 6, y: 2, type: 'server' },
+      { x: 8, y: 2, type: 'workstation' },
+      { x: 1, y: 4, type: 'router' },
+      { x: 3, y: 4, type: 'server' },
+      { x: 5, y: 4, type: 'switch' },
+      { x: 7, y: 4, type: 'workstation' },
+      { x: 9, y: 9, type: 'mainframe' }
+    ];
+
+    nodePositions.forEach(({ x, y, type }) => {
+      if (x < size && y < size) {
+        grid[y][x] = { type };
       }
-    }
+    });
 
-    // Add collectibles
+    const connections = [
+      [[0,0], [2,0]], [[2,0], [4,0]], [[4,0], [6,0]], [[6,0], [8,0]],
+      [[0,0], [0,2]], [[2,0], [2,2]], [[4,0], [4,2]], [[6,0], [6,2]], [[8,0], [8,2]],
+      [[0,2], [2,2]], [[2,2], [4,2]], [[4,2], [6,2]], [[6,2], [8,2]],
+      [[1,4], [3,4]], [[3,4], [5,4]], [[5,4], [7,4]],
+      [[2,2], [1,4]], [[4,2], [3,4]], [[6,2], [5,4]], [[8,2], [7,4]],
+      [[7,4], [9,9]]
+    ];
+
+    connections.forEach(([[x1,y1], [x2,y2]]) => {
+      if (x1 === x2) {
+        const startY = Math.min(y1, y2);
+        const endY = Math.max(y1, y2);
+        for (let y = startY + 1; y < endY; y++) {
+          if (grid[y][x1].type === 'empty') {
+            grid[y][x1] = { type: 'path' };
+          }
+        }
+      } else {
+        const startX = Math.min(x1, x2);
+        const endX = Math.max(x1, x2);
+        for (let x = startX + 1; x < endX; x++) {
+          if (grid[y1][x].type === 'empty') {
+            grid[y1][x] = { type: 'path' };
+          }
+        }
+      }
+    });
+
     const levelCollectibles = [];
-    const collectibleCount = Math.min(level + 2, 6);
+    const collectibleCount = Math.min(level + 1, 4);
+    const availableNodes = nodePositions.filter(node => 
+      node.type !== 'mainframe' && !(node.x === 0 && node.y === 0)
+    );
+
     for (let i = 0; i < collectibleCount; i++) {
-      let x, y;
-      do {
-        x = Math.floor(Math.random() * size);
-        y = Math.floor(Math.random() * size);
-      } while (grid[y][x] !== 'empty' || (x === 1 && y === 1) || (x === size-2 && y === size-2));
-      
+      const nodeIndex = Math.floor(Math.random() * availableNodes.length);
+      const node = availableNodes[nodeIndex];
       const collectible = collectibleTypes[i % collectibleTypes.length];
-      levelCollectibles.push({ ...collectible, x, y, collected: false });
-      grid[y][x] = 'collectible';
+      levelCollectibles.push({ 
+        ...collectible, 
+        x: node.x, 
+        y: node.y, 
+        collected: false 
+      });
+      availableNodes.splice(nodeIndex, 1);
     }
 
-    setGameGrid(grid);
+    setNetworkGrid(grid);
     setCollectibles(levelCollectibles);
-    setPlayerPosition({ x: 1, y: 1 });
-    setMousePosition({ x: size-2, y: size-2 });
-    setMoveCount(0);
+    setPlayerPosition({ x: 0, y: 0 });
+    setMousePosition({ x: 9, y: 9 });
+    setMainframeCompromised(0);
+    setTracingProgram([]);
+    updateCommandPool();
+  };
+
+  const updateCommandPool = () => {
+    let commands = [...availableCommands];
+    playerSkills.forEach(skill => {
+      if (skill.command) {
+        commands.push({
+          id: skill.command,
+          name: skill.command,
+          description: skill.skill[language],
+          color: 'bg-cyan-600'
+        });
+      }
+    });
+    setCommandPool(commands);
+  };
+
+  const executeTracingProgram = async () => {
+    if (tracingProgram.length === 0 || isExecutingProgram) return;
+    
+    setIsExecutingProgram(true);
+    setGameState('playing');
+    
+    for (let i = 0; i < tracingProgram.length; i++) {
+      const command = tracingProgram[i];
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      switch (command.id) {
+        case 'MOVE_UP':
+          movePlayer('up');
+          break;
+        case 'MOVE_DOWN':
+          movePlayer('down');
+          break;
+        case 'MOVE_LEFT':
+          movePlayer('left');
+          break;
+        case 'MOVE_RIGHT':
+          movePlayer('right');
+          break;
+        default:
+          break;
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 400));
+      moveMouse();
+    }
+    
+    setIsExecutingProgram(false);
   };
 
   const movePlayer = (direction) => {
-    if (gameState !== 'playing') return;
-
     const { x, y } = playerPosition;
     let newX = x, newY = y;
 
     switch (direction) {
       case 'up': newY = Math.max(0, y - 1); break;
-      case 'down': newY = Math.min(gameGrid.length - 1, y + 1); break;
+      case 'down': newY = Math.min(networkGrid.length - 1, y + 1); break;
       case 'left': newX = Math.max(0, x - 1); break;
-      case 'right': newX = Math.min(gameGrid[0].length - 1, x + 1); break;
+      case 'right': newX = Math.min(networkGrid[0].length - 1, x + 1); break;
     }
 
-    // Check for barriers
-    if (gameGrid[newY][newX] === 'barrier') return;
+    const targetCell = networkGrid[newY] && networkGrid[newY][newX];
+    if (!targetCell || targetCell.type === 'empty') return;
 
     setPlayerPosition({ x: newX, y: newY });
-    setMoveCount(prev => prev + 1);
 
-    // Check for collectible pickup
     const collectible = collectibles.find(c => c.x === newX && c.y === newY && !c.collected);
     if (collectible) {
       setCollectibles(prev => prev.map(c => 
@@ -205,68 +321,71 @@ const HackittyGame = () => {
       ));
       setCyberCoins(prev => prev + collectible.coins);
       setPlayerSkills(prev => [...prev, collectible]);
+      updateCommandPool();
     }
-
-    // Move mouse after player moves
-    setTimeout(moveMouse, 500);
   };
 
   const moveMouse = () => {
     if (gameState !== 'playing') return;
     
-    setIsMouseMoving(true);
     const { x: mouseX, y: mouseY } = mousePosition;
+    let newMouseX = mouseX;
+    let newMouseY = mouseY;
     
-    // Mouse AI: try to reach uncollected collectibles
-    const availableCollectibles = collectibles.filter(c => !c.collected);
-    if (availableCollectibles.length > 0) {
-      const target = availableCollectibles[0];
-      let newMouseX = mouseX;
-      let newMouseY = mouseY;
+    if (mouseX < 9) newMouseX = mouseX + 1;
+    else if (mouseY < 9) newMouseY = mouseY + 1;
+    
+    const targetCell = networkGrid[newMouseY] && networkGrid[newMouseY][newMouseX];
+    if (targetCell && targetCell.type !== 'empty') {
+      setMousePosition({ x: newMouseX, y: newMouseY });
       
-      // Simple pathfinding toward target
-      if (target.x > mouseX) newMouseX = Math.min(gameGrid[0].length - 1, mouseX + 1);
-      else if (target.x < mouseX) newMouseX = Math.max(0, mouseX - 1);
-      else if (target.y > mouseY) newMouseY = Math.min(gameGrid.length - 1, mouseY + 1);
-      else if (target.y < mouseY) newMouseY = Math.max(0, mouseY - 1);
+      if (newMouseX === 9 && newMouseY === 9) {
+        setMainframeCompromised(100);
+        setGameState('game-over');
+      }
       
-      // Check for barriers (mouse can phase through some with skills)
-      if (gameGrid[newMouseY][newMouseX] !== 'barrier') {
-        setMousePosition({ x: newMouseX, y: newMouseY });
-        
-        // Check if mouse reached a collectible
-        const mouseCollectible = collectibles.find(c => c.x === newMouseX && c.y === newMouseY && !c.collected);
-        if (mouseCollectible) {
-          setCollectibles(prev => prev.map(c => 
-            c.x === newMouseX && c.y === newMouseY ? { ...c, collected: true } : c
-          ));
-          setMouseSkills(prev => [...prev, mouseCollectible]);
-        }
+      const mouseCollectible = collectibles.find(c => c.x === newMouseX && c.y === newMouseY && !c.collected);
+      if (mouseCollectible) {
+        setCollectibles(prev => prev.map(c => 
+          c.x === newMouseX && c.y === newMouseY ? { ...c, collected: true } : c
+        ));
+        setMainframeCompromised(prev => Math.min(100, prev + 20));
       }
     }
-    
-    setTimeout(() => setIsMouseMoving(false), 300);
   };
 
-  // Check win/lose conditions
   useEffect(() => {
     if (gameState === 'playing') {
-      // Check if player caught mouse
       if (playerPosition.x === mousePosition.x && playerPosition.y === mousePosition.y) {
         setGameState('level-complete');
-        setCyberCoins(prev => prev + 50); // Bonus for catching mouse
-      }
-      
-      // Check if all collectibles are taken
-      const remaining = collectibles.filter(c => !c.collected);
-      if (remaining.length === 0) {
-        // Determine winner based on who got more collectibles
-        if (playerSkills.length > mouseSkills.length) {
-          setGameState('level-complete');
-        }
+        setCyberCoins(prev => prev + 100);
       }
     }
-  }, [playerPosition, mousePosition, collectibles, gameState]);
+  }, [playerPosition, mousePosition, gameState]);
+
+  const getNodeIcon = (nodeType) => {
+    switch (nodeType) {
+      case 'workstation': return Monitor;
+      case 'smartphone': return Smartphone;
+      case 'server': return Server;
+      case 'router': return Router;
+      case 'switch': return Wifi;
+      case 'mainframe': return HardDrive;
+      default: return null;
+    }
+  };
+
+  const getNodeColor = (nodeType) => {
+    switch (nodeType) {
+      case 'workstation': return 'text-blue-400';
+      case 'smartphone': return 'text-green-400';
+      case 'server': return 'text-purple-400';
+      case 'router': return 'text-orange-400';
+      case 'switch': return 'text-yellow-400';
+      case 'mainframe': return 'text-red-400';
+      default: return 'text-gray-400';
+    }
+  };
 
   const Logo = () => (
     <div className="flex items-center justify-center mb-4">
@@ -294,49 +413,147 @@ const HackittyGame = () => {
     </div>
   );
 
-  const GameBoard = () => (
+  const NetworkBoard = () => (
     <div className="bg-gray-900 p-4 rounded-lg border border-cyan-500">
-      <div className="grid gap-1 mb-4" style={{ 
-        gridTemplateColumns: `repeat(${gameGrid[0]?.length || 10}, minmax(0, 1fr))`,
-        maxWidth: '400px',
-        margin: '0 auto'
-      }}>
-        {gameGrid.map((row, y) =>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-cyan-400 font-semibold">{text[language].networkNodes}</h3>
+        <div className="flex items-center">
+          <span className="text-sm mr-2">{text[language].mainframeStatus}:</span>
+          <div className="w-24 h-3 bg-gray-700 rounded-full">
+            <div 
+              className={`h-full rounded-full transition-all duration-500 ${
+                mainframeCompromised > 60 ? 'bg-red-500' : 
+                mainframeCompromised > 30 ? 'bg-yellow-500' : 'bg-green-500'
+              }`}
+              style={{ width: `${mainframeCompromised}%` }}
+            />
+          </div>
+          <span className="text-sm ml-2">{mainframeCompromised}%</span>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-10 gap-1 mb-4" style={{ maxWidth: '500px', margin: '0 auto' }}>
+        {networkGrid.map((row, y) =>
           row.map((cell, x) => {
             const isPlayer = playerPosition.x === x && playerPosition.y === y;
             const isMouse = mousePosition.x === x && mousePosition.y === y;
             const collectible = collectibles.find(c => c.x === x && c.y === y && !c.collected);
+            const NodeIcon = getNodeIcon(cell.type);
             
             return (
               <div
                 key={`${x}-${y}`}
-                className={`aspect-square flex items-center justify-center text-lg border border-gray-700 relative
-                  ${cell === 'barrier' ? 'bg-red-900' : 'bg-gray-800'}
+                className={`aspect-square flex items-center justify-center text-xs border relative
+                  ${cell.type === 'empty' ? 'border-gray-800 bg-gray-900' : 
+                    cell.type === 'path' ? 'border-cyan-700 bg-cyan-900/20' :
+                    'border-gray-600 bg-gray-800'}
                   ${isPlayer ? 'ring-2 ring-cyan-400' : ''}
                   ${isMouse ? 'ring-2 ring-red-400' : ''}
+                  ${cell.type === 'mainframe' ? 'bg-red-900/50 ring-2 ring-red-500' : ''}
                 `}
               >
-                {cell === 'barrier' && '🚫'}
-                {collectible && <span>{collectible.icon}</span>}
-                {isPlayer && <span className="absolute">🐱</span>}
-                {isMouse && <span className={`absolute ${isMouseMoving ? 'animate-pulse' : ''}`}>🐭</span>}
+                {cell.type === 'path' && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-1 h-full bg-cyan-400/50" />
+                    <div className="absolute w-full h-1 bg-cyan-400/50" />
+                  </div>
+                )}
+                
+                {NodeIcon && (
+                  <NodeIcon 
+                    className={`w-4 h-4 ${getNodeColor(cell.type)} ${
+                      cell.type === 'mainframe' ? 'animate-pulse' : ''
+                    }`} 
+                  />
+                )}
+                
+                {collectible && (
+                  <span className="absolute top-0 right-0 text-xs transform translate-x-1 -translate-y-1">
+                    {collectible.icon}
+                  </span>
+                )}
+                
+                {isPlayer && <span className="absolute text-lg z-10">🐱</span>}
+                {isMouse && <span className="absolute text-lg z-10">🐭</span>}
               </div>
             );
           })
         )}
       </div>
-      
-      {/* Game Controls */}
-      <div className="grid grid-cols-3 gap-2 max-w-48 mx-auto mb-4">
-        <div></div>
-        <button onClick={() => movePlayer('up')} className="bg-cyan-600 hover:bg-cyan-700 p-2 rounded">↑</button>
-        <div></div>
-        <button onClick={() => movePlayer('left')} className="bg-cyan-600 hover:bg-cyan-700 p-2 rounded">←</button>
-        <div className="bg-gray-700 p-2 rounded text-center">🐱</div>
-        <button onClick={() => movePlayer('right')} className="bg-cyan-600 hover:bg-cyan-700 p-2 rounded">→</button>
-        <div></div>
-        <button onClick={() => movePlayer('down')} className="bg-cyan-600 hover:bg-cyan-700 p-2 rounded">↓</button>
-        <div></div>
+    </div>
+  );
+
+  const ProgrammingInterface = () => (
+    <div className="space-y-4">
+      <div className="bg-gray-900 p-4 rounded-lg border border-cyan-500">
+        <h3 className="text-cyan-400 font-semibold mb-3">{text[language].commandPool}</h3>
+        <div className="grid grid-cols-2 gap-2">
+          {commandPool.map(command => (
+            <div
+              key={command.id}
+              draggable
+              onDragStart={(e) => e.dataTransfer.setData('text/plain', JSON.stringify(command))}
+              className={`${command.color} p-2 rounded cursor-move hover:opacity-80 transition-opacity`}
+            >
+              <div className="font-mono text-xs text-white">{command.name}</div>
+              <div className="text-xs text-gray-200">{command.description}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-black p-4 rounded-lg border border-green-500">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-green-400 font-mono">{text[language].tracingProgram}</h3>
+          <div className="flex gap-2">
+            <button
+              onClick={executeTracingProgram}
+              disabled={tracingProgram.length === 0 || isExecutingProgram}
+              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 px-3 py-1 rounded text-xs font-mono"
+            >
+              {text[language].executeProgram}
+            </button>
+            <button
+              onClick={() => setTracingProgram([])}
+              className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs font-mono"
+            >
+              {text[language].clearProgram}
+            </button>
+          </div>
+        </div>
+        
+        <div
+          className="min-h-32 border border-green-700 rounded p-2 bg-gray-900"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            const command = JSON.parse(e.dataTransfer.getData('text/plain'));
+            setTracingProgram(prev => [...prev, command]);
+          }}
+        >
+          {tracingProgram.length === 0 ? (
+            <div className="text-green-600/50 font-mono text-sm text-center py-8">
+              Drag commands here to build your trace program...
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {tracingProgram.map((command, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between bg-green-800/20 p-2 rounded font-mono text-sm"
+                >
+                  <span className="text-green-400">{index + 1}. {command.name}</span>
+                  <button
+                    onClick={() => setTracingProgram(prev => prev.filter((_, i) => i !== index))}
+                    className="text-red-400 hover:text-red-300"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -352,11 +569,6 @@ const HackittyGame = () => {
         <span>{text[language].level}</span>
         <span className="text-cyan-400 font-bold">{currentLevel}</span>
       </div>
-      
-      <div className="flex items-center justify-between">
-        <span>Moves</span>
-        <span className="text-green-400 font-bold">{moveCount}</span>
-      </div>
 
       {playerSkills.length > 0 && (
         <div>
@@ -364,8 +576,11 @@ const HackittyGame = () => {
           <div className="space-y-2">
             {playerSkills.map((skill, index) => (
               <div key={index} className="bg-gray-800 p-2 rounded text-xs">
-                <div className="font-semibold text-cyan-300">{skill.name[language]}</div>
-                <div className="text-gray-300">{skill.concept[language]}</div>
+                <div className="flex items-center mb-1">
+                  <span className="mr-2">{skill.icon}</span>
+                  <span className="font-semibold text-cyan-300">{skill.name[language]}</span>
+                </div>
+                <div className="text-gray-300 mb-1">{skill.concept[language]}</div>
                 <div className="text-green-400">{skill.skill[language]}</div>
               </div>
             ))}
@@ -449,7 +664,7 @@ const HackittyGame = () => {
 
   return (
     <div className="min-h-screen bg-black text-white p-4">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <Logo />
           
@@ -463,7 +678,7 @@ const HackittyGame = () => {
             </button>
             
             <button
-              onClick={() => initializeLevel(currentLevel)}
+              onClick={() => initializeNetwork(currentLevel)}
               className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded flex items-center"
             >
               <RotateCcw className="w-4 h-4 mr-2" />
@@ -479,9 +694,13 @@ const HackittyGame = () => {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-4 gap-6">
           <div className="lg:col-span-2">
-            <GameBoard />
+            <NetworkBoard />
+          </div>
+          
+          <div>
+            <ProgrammingInterface />
           </div>
           
           <div>
@@ -495,7 +714,7 @@ const HackittyGame = () => {
               <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-cyan-400 mb-4">{text[language].caught}</h2>
               <p className="text-gray-300 mb-4">Level {currentLevel} Complete!</p>
-              <p className="text-yellow-400 mb-6">+50 CyberCoins Bonus!</p>
+              <p className="text-yellow-400 mb-6">+100 CyberCoins Bonus!</p>
               
               <div className="flex gap-4 justify-center">
                 <button
@@ -506,6 +725,35 @@ const HackittyGame = () => {
                   className="bg-cyan-600 hover:bg-cyan-700 px-6 py-2 rounded"
                 >
                   Next Level
+                </button>
+                <button
+                  onClick={() => setGameState('menu')}
+                  className="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded"
+                >
+                  Main Menu
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {gameState === 'game-over' && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
+            <div className="bg-gray-900 p-8 rounded-lg border border-red-500 text-center">
+              <HardDrive className="w-16 h-16 text-red-400 mx-auto mb-4 animate-pulse" />
+              <h2 className="text-2xl font-bold text-red-400 mb-4">{text[language].escaped}</h2>
+              <p className="text-gray-300 mb-4">The cyber mouse reached the mainframe!</p>
+              <p className="text-red-400 mb-6">Network security compromised at {mainframeCompromised}%</p>
+              
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() => {
+                    initializeNetwork(currentLevel);
+                    setGameState('playing');
+                  }}
+                  className="bg-cyan-600 hover:bg-cyan-700 px-6 py-2 rounded"
+                >
+                  Try Again
                 </button>
                 <button
                   onClick={() => setGameState('menu')}
