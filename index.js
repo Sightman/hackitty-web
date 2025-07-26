@@ -1,25 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, Trophy, Coins, Users, Monitor, Smartphone, Server, Router, Wifi, HardDrive } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Play, Pause, RotateCcw, Trophy, Coins, Users, Monitor, Smartphone, Server, Router, Wifi, HardDrive, Shield, Compass, Zap } from 'lucide-react';
 
 const HackittyGame = () => {
   const [gameState, setGameState] = useState('menu');
   const [currentLevel, setCurrentLevel] = useState(1);
-  const [playerPosition, setPlayerPosition] = useState({ x: 0, y: 0 });
-  const [mousePosition, setMousePosition] = useState({ x: 9, y: 9 });
+  const [playerPosition, setPlayerPosition] = useState({ x: 100, y: 400 });
+  const [mousePosition, setMousePosition] = useState({ x: 100, y: 100 });
   const [cyberCoins, setCyberCoins] = useState(0);
   const [collectibles, setCollectibles] = useState([]);
   const [playerSkills, setPlayerSkills] = useState([]);
-  const [networkGrid, setNetworkGrid] = useState([]);
+  const [networkNodes, setNetworkNodes] = useState([]);
+  const [networkConnections, setNetworkConnections] = useState([]);
   const [language, setLanguage] = useState('en');
   const [commandPool, setCommandPool] = useState([]);
   const [tracingProgram, setTracingProgram] = useState([]);
   const [isExecutingProgram, setIsExecutingProgram] = useState(false);
   const [mainframeCompromised, setMainframeCompromised] = useState(0);
+  const [blockedNodes, setBlockedNodes] = useState([]);
+  const [disconnectedNodes, setDisconnectedNodes] = useState([]);
+  const [mouseInventory, setMouseInventory] = useState([]);
+  const svgRef = useRef(null);
 
   const text = {
     en: {
       title: "HACKITTY",
-      subtitle: "Stop the Cyber Mouse from Taking Over the Network!",
+      subtitle: "Stop the Cyber Mouse from Taking Over the Citrix Network!",
       play: "Play",
       pause: "Pause",
       reset: "Reset Level",
@@ -33,7 +38,7 @@ const HackittyGame = () => {
       collectiblesTitle: "Network Security Tools & CS Concepts",
       howToPlayTitle: "How to Play",
       howToPlay: [
-        "🐱 You are Hackitty, a network security specialist",
+        "🐱 You are Hackitty, a Citrix network security specialist",
         "🐭 Stop the AI cyborg mouse from compromising the mainframe",
         "🔧 Collect security tools and learn CS concepts",
         "⚡ Program your trace route using drag-and-drop commands",
@@ -44,11 +49,11 @@ const HackittyGame = () => {
       executeProgram: "Execute Trace",
       clearProgram: "Clear Program",
       mainframeStatus: "Mainframe Security",
-      networkNodes: "Network Topology"
+      networkNodes: "Citrix Network Architecture"
     },
     es: {
       title: "HACKITTY",
-      subtitle: "¡Detén al Ratón Cyber de Tomar Control de la Red!",
+      subtitle: "¡Detén al Ratón Cyber de Tomar Control de la Red Citrix!",
       play: "Jugar",
       pause: "Pausa",
       reset: "Reiniciar Nivel",
@@ -62,7 +67,7 @@ const HackittyGame = () => {
       collectiblesTitle: "Herramientas de Seguridad de Red y Conceptos de CC",
       howToPlayTitle: "Cómo Jugar",
       howToPlay: [
-        "🐱 Eres Hackitty, un especialista en seguridad de redes",
+        "🐱 Eres Hackitty, un especialista en seguridad de redes Citrix",
         "🐭 Detén al ratón cyborg IA de comprometer el servidor principal",
         "🔧 Recoge herramientas de seguridad y aprende conceptos de CC",
         "⚡ Programa tu ruta de rastreo usando comandos arrastrar y soltar",
@@ -73,7 +78,7 @@ const HackittyGame = () => {
       executeProgram: "Ejecutar Rastreo",
       clearProgram: "Limpiar Programa",
       mainframeStatus: "Seguridad del Servidor Principal",
-      networkNodes: "Topología de Red"
+      networkNodes: "Arquitectura de Red Citrix"
     }
   };
 
@@ -81,8 +86,8 @@ const HackittyGame = () => {
     {
       id: 'firewall',
       name: {
-        en: 'Firewall Protocol',
-        es: 'Protocolo Firewall'
+        en: 'Firewall Shield',
+        es: 'Escudo Firewall'
       },
       icon: '🛡️',
       concept: {
@@ -90,143 +95,141 @@ const HackittyGame = () => {
         es: 'Firewall - Barrera de seguridad que filtra el tráfico de red'
       },
       skill: {
-        en: 'Unlocks: Block command - stops mouse for 1 turn',
-        es: 'Desbloquea: Comando bloquear - detiene al ratón por 1 turno'
+        en: 'Blocks a node with firewall protection',
+        es: 'Bloquea un nodo con protección firewall'
       },
-      command: 'BLOCK',
-      coins: 15
+      command: 'FIREWALL',
+      coins: 15,
+      mouseEffect: 'bypass_firewall'
     },
     {
-      id: 'encryption',
+      id: 'stealth',
       name: {
-        en: 'Encryption Key',
-        es: 'Clave de Encriptación'
+        en: 'Stealth Mode',
+        es: 'Modo Sigiloso'
       },
-      icon: '🔐',
+      icon: '👻',
       concept: {
-        en: 'Encryption - Scrambles data to protect it from unauthorized access',
-        es: 'Encriptación - Codifica datos para protegerlos del acceso no autorizado'
+        en: 'Stealth - Allows passing through same node as opponent',
+        es: 'Sigilo - Permite pasar por el mismo nodo que el oponente'
       },
       skill: {
-        en: 'Unlocks: Encrypt command - makes you invisible for 2 moves',
-        es: 'Desbloquea: Comando encriptar - te hace invisible por 2 movimientos'
+        en: 'Find quickest path to reach the mouse',
+        es: 'Encuentra el camino más rápido para alcanzar al ratón'
       },
-      command: 'ENCRYPT',
-      coins: 20
+      command: 'PATHFIND',
+      coins: 20,
+      mouseEffect: 'stealth_mode'
     },
     {
-      id: 'tracer',
+      id: 'pathfinder',
       name: {
-        en: 'Network Tracer',
-        es: 'Rastreador de Red'
+        en: 'Network Compass',
+        es: 'Brújula de Red'
       },
-      icon: '📡',
+      icon: '🧭',
       concept: {
-        en: 'Packet Tracing - Follows data packets through network paths',
-        es: 'Rastreo de Paquetes - Sigue paquetes de datos por rutas de red'
+        en: 'Pathfinding - Calculates optimal network routes',
+        es: 'Búsqueda de rutas - Calcula rutas óptimas de red'
       },
       skill: {
-        en: 'Unlocks: Trace command - reveals mouse next 3 moves',
-        es: 'Desbloquea: Comando rastrear - revela próximos 3 movimientos del ratón'
+        en: 'Disconnect a node from the network',
+        es: 'Desconecta un nodo de la red'
       },
-      command: 'TRACE',
-      coins: 25
+      command: 'DISCONNECT',
+      coins: 25,
+      mouseEffect: 'smart_pathfind'
     },
     {
-      id: 'antivirus',
+      id: 'disruptor',
       name: {
-        en: 'Antivirus Scanner',
-        es: 'Escáner Antivirus'
+        en: 'Network Disruptor',
+        es: 'Disruptor de Red'
       },
-      icon: '🦠',
+      icon: '⚡',
       concept: {
-        en: 'Antivirus - Software that detects and removes malicious code',
-        es: 'Antivirus - Software que detecta y elimina código malicioso'
+        en: 'Network Isolation - Disconnects compromised nodes',
+        es: 'Aislamiento de Red - Desconecta nodos comprometidos'
       },
       skill: {
-        en: 'Unlocks: Scan command - teleport to any network node',
-        es: 'Desbloquea: Comando escanear - teletransporte a cualquier nodo de red'
+        en: 'Advanced network manipulation tools',
+        es: 'Herramientas avanzadas de manipulación de red'
       },
-      command: 'SCAN',
-      coins: 30
+      command: 'ISOLATE',
+      coins: 30,
+      mouseEffect: 'tunnel_mode'
     }
   ];
 
   const availableCommands = [
-    { id: 'MOVE_UP', name: 'MOVE ↑', description: 'Move one node up', color: 'bg-blue-600' },
-    { id: 'MOVE_DOWN', name: 'MOVE ↓', description: 'Move one node down', color: 'bg-blue-600' },
-    { id: 'MOVE_LEFT', name: 'MOVE ←', description: 'Move one node left', color: 'bg-blue-600' },
-    { id: 'MOVE_RIGHT', name: 'MOVE →', description: 'Move one node right', color: 'bg-blue-600' },
-    { id: 'LOOP_3', name: 'LOOP 3x', description: 'Repeat next command 3 times', color: 'bg-purple-600' }
+    { id: 'MOVE_TO_NODE', name: 'MOVE TO', description: 'Move to a connected node', color: 'bg-blue-600' },
+    { id: 'SCAN_AREA', name: 'SCAN', description: 'Scan nearby nodes', color: 'bg-purple-600' },
+    { id: 'WAIT', name: 'WAIT', description: 'Wait one turn', color: 'bg-gray-600' }
   ];
 
-  useEffect(() => {
-    initializeNetwork(currentLevel);
-  }, [currentLevel]);
-
+  // Citrix network architecture nodes
   const initializeNetwork = (level) => {
-    const size = 10;
-    const grid = Array(size).fill(null).map(() => Array(size).fill({ type: 'empty' }));
-    
-    const nodePositions = [
-      { x: 0, y: 0, type: 'workstation' },
-      { x: 2, y: 0, type: 'router' },
-      { x: 4, y: 0, type: 'server' },
-      { x: 6, y: 0, type: 'workstation' },
-      { x: 8, y: 0, type: 'smartphone' },
-      { x: 0, y: 2, type: 'smartphone' },
-      { x: 2, y: 2, type: 'switch' },
-      { x: 4, y: 2, type: 'router' },
-      { x: 6, y: 2, type: 'server' },
-      { x: 8, y: 2, type: 'workstation' },
-      { x: 1, y: 4, type: 'router' },
-      { x: 3, y: 4, type: 'server' },
-      { x: 5, y: 4, type: 'switch' },
-      { x: 7, y: 4, type: 'workstation' },
-      { x: 9, y: 9, type: 'mainframe' }
+    const nodes = [
+      // Client Access Layer
+      { id: 'client1', x: 50, y: 100, type: 'workstation', name: 'Client 1' },
+      { id: 'client2', x: 150, y: 100, type: 'workstation', name: 'Client 2' },
+      
+      // Load Balancer Layer
+      { id: 'loadbalancer', x: 100, y: 200, type: 'router', name: 'Load Balancer' },
+      
+      // Citrix Gateway Layer
+      { id: 'gateway1', x: 50, y: 300, type: 'server', name: 'Citrix Gateway 1' },
+      { id: 'gateway2', x: 150, y: 300, type: 'server', name: 'Citrix Gateway 2' },
+      
+      // Session Host Layer
+      { id: 'sessionhost1', x: 25, y: 400, type: 'server', name: 'Session Host 1' },
+      { id: 'sessionhost2', x: 75, y: 400, type: 'server', name: 'Session Host 2' },
+      { id: 'sessionhost3', x: 125, y: 400, type: 'server', name: 'Session Host 3' },
+      { id: 'sessionhost4', x: 175, y: 400, type: 'server', name: 'Session Host 4' },
+      
+      // Database Layer
+      { id: 'database', x: 100, y: 500, type: 'server', name: 'Database Server' },
+      
+      // Mainframe
+      { id: 'mainframe', x: 100, y: 600, type: 'mainframe', name: 'Mainframe' }
     ];
-
-    nodePositions.forEach(({ x, y, type }) => {
-      if (x < size && y < size) {
-        grid[y][x] = { type };
-      }
-    });
 
     const connections = [
-      [[0,0], [2,0]], [[2,0], [4,0]], [[4,0], [6,0]], [[6,0], [8,0]],
-      [[0,0], [0,2]], [[2,0], [2,2]], [[4,0], [4,2]], [[6,0], [6,2]], [[8,0], [8,2]],
-      [[0,2], [2,2]], [[2,2], [4,2]], [[4,2], [6,2]], [[6,2], [8,2]],
-      [[1,4], [3,4]], [[3,4], [5,4]], [[5,4], [7,4]],
-      [[2,2], [1,4]], [[4,2], [3,4]], [[6,2], [5,4]], [[8,2], [7,4]],
-      [[7,4], [9,9]]
+      // Client to Load Balancer
+      { from: 'client1', to: 'loadbalancer' },
+      { from: 'client2', to: 'loadbalancer' },
+      
+      // Load Balancer to Gateways
+      { from: 'loadbalancer', to: 'gateway1' },
+      { from: 'loadbalancer', to: 'gateway2' },
+      
+      // Gateways to Session Hosts
+      { from: 'gateway1', to: 'sessionhost1' },
+      { from: 'gateway1', to: 'sessionhost2' },
+      { from: 'gateway2', to: 'sessionhost3' },
+      { from: 'gateway2', to: 'sessionhost4' },
+      
+      // Session Hosts to Database
+      { from: 'sessionhost1', to: 'database' },
+      { from: 'sessionhost2', to: 'database' },
+      { from: 'sessionhost3', to: 'database' },
+      { from: 'sessionhost4', to: 'database' },
+      
+      // Database to Mainframe
+      { from: 'database', to: 'mainframe' }
     ];
 
-    connections.forEach(([[x1,y1], [x2,y2]]) => {
-      if (x1 === x2) {
-        const startY = Math.min(y1, y2);
-        const endY = Math.max(y1, y2);
-        for (let y = startY + 1; y < endY; y++) {
-          if (grid[y][x1].type === 'empty') {
-            grid[y][x1] = { type: 'path' };
-          }
-        }
-      } else {
-        const startX = Math.min(x1, x2);
-        const endX = Math.max(x1, x2);
-        for (let x = startX + 1; x < endX; x++) {
-          if (grid[y1][x].type === 'empty') {
-            grid[y1][x] = { type: 'path' };
-          }
-        }
-      }
-    });
-
+    setNetworkNodes(nodes);
+    setNetworkConnections(connections);
+    
+    // Place collectibles randomly on nodes (except client nodes and mainframe)
+    const availableNodes = nodes.filter(node => 
+      node.type !== 'mainframe' && !node.id.startsWith('client')
+    );
+    
     const levelCollectibles = [];
     const collectibleCount = Math.min(level + 1, 4);
-    const availableNodes = nodePositions.filter(node => 
-      node.type !== 'mainframe' && !(node.x === 0 && node.y === 0)
-    );
-
+    
     for (let i = 0; i < collectibleCount; i++) {
       const nodeIndex = Math.floor(Math.random() * availableNodes.length);
       const node = availableNodes[nodeIndex];
@@ -235,17 +238,20 @@ const HackittyGame = () => {
         ...collectible, 
         x: node.x, 
         y: node.y, 
+        nodeId: node.id,
         collected: false 
       });
       availableNodes.splice(nodeIndex, 1);
     }
 
-    setNetworkGrid(grid);
     setCollectibles(levelCollectibles);
-    setPlayerPosition({ x: 0, y: 0 });
-    setMousePosition({ x: 9, y: 9 });
+    setPlayerPosition({ x: 100, y: 400 }); // Start at a session host
+    setMousePosition({ x: 100, y: 100 }); // Start at load balancer
     setMainframeCompromised(0);
     setTracingProgram([]);
+    setBlockedNodes([]);
+    setDisconnectedNodes([]);
+    setMouseInventory([]);
     updateCommandPool();
   };
 
@@ -264,6 +270,122 @@ const HackittyGame = () => {
     setCommandPool(commands);
   };
 
+  const findPathToMainframe = (startPos) => {
+    const startNode = findNearestNode(startPos);
+    const mainframeNode = networkNodes.find(node => node.type === 'mainframe');
+    
+    if (!startNode || !mainframeNode) return [];
+    
+    // Simple BFS pathfinding
+    const queue = [{ node: startNode, path: [startNode] }];
+    const visited = new Set([startNode.id]);
+    
+    while (queue.length > 0) {
+      const { node, path } = queue.shift();
+      
+      if (node.id === mainframeNode.id) {
+        return path;
+      }
+      
+      const connections = networkConnections.filter(conn => 
+        (conn.from === node.id || conn.to === node.id) &&
+        !disconnectedNodes.includes(conn.from) &&
+        !disconnectedNodes.includes(conn.to)
+      );
+      
+      for (const conn of connections) {
+        const nextNodeId = conn.from === node.id ? conn.to : conn.from;
+        const nextNode = networkNodes.find(n => n.id === nextNodeId);
+        
+        if (!visited.has(nextNodeId) && nextNode) {
+          visited.add(nextNodeId);
+          queue.push({ node: nextNode, path: [...path, nextNode] });
+        }
+      }
+    }
+    
+    return [];
+  };
+
+  const findNearestNode = (position) => {
+    let nearest = null;
+    let minDistance = Infinity;
+    
+    for (const node of networkNodes) {
+      const distance = Math.sqrt(
+        Math.pow(node.x - position.x, 2) + Math.pow(node.y - position.y, 2)
+      );
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearest = node;
+      }
+    }
+    
+    return nearest;
+  };
+
+  const moveMouseTowardsMainframe = () => {
+    const currentNode = findNearestNode(mousePosition);
+    if (!currentNode) return;
+    
+    // Check if mouse has special abilities
+    const hasCompass = mouseInventory.includes('smart_pathfind');
+    const hasStealth = mouseInventory.includes('stealth_mode');
+    const hasTunnel = mouseInventory.includes('tunnel_mode');
+    
+    let path;
+    if (hasCompass) {
+      // Smart pathfinding - always optimal route
+      path = findPathToMainframe(mousePosition);
+    } else {
+      // Random movement towards mainframe
+      const availableConnections = networkConnections.filter(conn => {
+        const isConnected = conn.from === currentNode.id || conn.to === currentNode.id;
+        const isNotBlocked = !blockedNodes.includes(conn.from) && !blockedNodes.includes(conn.to);
+        const isNotDisconnected = !disconnectedNodes.includes(conn.from) && !disconnectedNodes.includes(conn.to);
+        
+        // Special abilities
+        if (hasTunnel && (disconnectedNodes.includes(conn.from) || disconnectedNodes.includes(conn.to))) {
+          return isConnected; // Can pass through disconnected nodes
+        }
+        
+        return isConnected && isNotBlocked && isNotDisconnected;
+      });
+      
+      if (availableConnections.length > 0) {
+        const randomConnection = availableConnections[Math.floor(Math.random() * availableConnections.length)];
+        const nextNodeId = randomConnection.from === currentNode.id ? randomConnection.to : randomConnection.from;
+        const nextNode = networkNodes.find(n => n.id === nextNodeId);
+        path = nextNode ? [currentNode, nextNode] : [currentNode];
+      } else {
+        path = [currentNode];
+      }
+    }
+    
+    if (path.length > 1) {
+      const nextNode = path[1];
+      setMousePosition({ x: nextNode.x, y: nextNode.y });
+      
+      // Check if mouse reached mainframe
+      if (nextNode.type === 'mainframe') {
+        setMainframeCompromised(100);
+        setGameState('game-over');
+      }
+      
+      // Check for collectibles
+      const collectible = collectibles.find(c => 
+        c.nodeId === nextNode.id && !c.collected
+      );
+      if (collectible) {
+        setCollectibles(prev => prev.map(c => 
+          c.nodeId === nextNode.id ? { ...c, collected: true } : c
+        ));
+        setMouseInventory(prev => [...prev, collectible.mouseEffect]);
+        setMainframeCompromised(prev => Math.min(100, prev + 15));
+      }
+    }
+  };
+
   const executeTracingProgram = async () => {
     if (tracingProgram.length === 0 || isExecutingProgram) return;
     
@@ -272,91 +394,121 @@ const HackittyGame = () => {
     
     for (let i = 0; i < tracingProgram.length; i++) {
       const command = tracingProgram[i];
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       switch (command.id) {
-        case 'MOVE_UP':
-          movePlayer('up');
+        case 'MOVE_TO_NODE':
+          // Move to nearest connected node
+          movePlayerToNearestNode();
           break;
-        case 'MOVE_DOWN':
-          movePlayer('down');
+        case 'FIREWALL':
+          activateFirewall();
           break;
-        case 'MOVE_LEFT':
-          movePlayer('left');
+        case 'PATHFIND':
+          findPathToMouse();
           break;
-        case 'MOVE_RIGHT':
-          movePlayer('right');
+        case 'DISCONNECT':
+          disconnectNode();
+          break;
+        case 'SCAN_AREA':
+          scanArea();
+          break;
+        case 'WAIT':
+          // Just wait
           break;
         default:
           break;
       }
       
-      await new Promise(resolve => setTimeout(resolve, 400));
-      moveMouse();
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mouse moves after each player action
+      if (gameState === 'playing') {
+        moveMouseTowardsMainframe();
+      }
     }
     
     setIsExecutingProgram(false);
   };
 
-  const movePlayer = (direction) => {
-    const { x, y } = playerPosition;
-    let newX = x, newY = y;
-
-    switch (direction) {
-      case 'up': newY = Math.max(0, y - 1); break;
-      case 'down': newY = Math.min(networkGrid.length - 1, y + 1); break;
-      case 'left': newX = Math.max(0, x - 1); break;
-      case 'right': newX = Math.min(networkGrid[0].length - 1, x + 1); break;
-    }
-
-    const targetCell = networkGrid[newY] && networkGrid[newY][newX];
-    if (!targetCell || targetCell.type === 'empty') return;
-
-    setPlayerPosition({ x: newX, y: newY });
-
-    const collectible = collectibles.find(c => c.x === newX && c.y === newY && !c.collected);
-    if (collectible) {
-      setCollectibles(prev => prev.map(c => 
-        c.x === newX && c.y === newY ? { ...c, collected: true } : c
-      ));
-      setCyberCoins(prev => prev + collectible.coins);
-      setPlayerSkills(prev => [...prev, collectible]);
-      updateCommandPool();
+  const movePlayerToNearestNode = () => {
+    const currentNode = findNearestNode(playerPosition);
+    if (!currentNode) return;
+    
+    const availableConnections = networkConnections.filter(conn => 
+      conn.from === currentNode.id || conn.to === currentNode.id
+    );
+    
+    if (availableConnections.length > 0) {
+      const randomConnection = availableConnections[Math.floor(Math.random() * availableConnections.length)];
+      const nextNodeId = randomConnection.from === currentNode.id ? randomConnection.to : randomConnection.from;
+      const nextNode = networkNodes.find(n => n.id === nextNodeId);
+      
+      if (nextNode) {
+        setPlayerPosition({ x: nextNode.x, y: nextNode.y });
+        
+        // Check for collectibles
+        const collectible = collectibles.find(c => 
+          c.nodeId === nextNode.id && !c.collected
+        );
+        if (collectible) {
+          setCollectibles(prev => prev.map(c => 
+            c.nodeId === nextNode.id ? { ...c, collected: true } : c
+          ));
+          setCyberCoins(prev => prev + collectible.coins);
+          setPlayerSkills(prev => [...prev, collectible]);
+          updateCommandPool();
+        }
+      }
     }
   };
 
-  const moveMouse = () => {
-    if (gameState !== 'playing') return;
+  const activateFirewall = () => {
+    const nearestNode = findNearestNode(playerPosition);
+    if (nearestNode && !blockedNodes.includes(nearestNode.id)) {
+      setBlockedNodes(prev => [...prev, nearestNode.id]);
+    }
+  };
+
+  const findPathToMouse = () => {
+    const mouseNode = findNearestNode(mousePosition);
+    const playerNode = findNearestNode(playerPosition);
     
-    const { x: mouseX, y: mouseY } = mousePosition;
-    let newMouseX = mouseX;
-    let newMouseY = mouseY;
-    
-    if (mouseX < 9) newMouseX = mouseX + 1;
-    else if (mouseY < 9) newMouseY = mouseY + 1;
-    
-    const targetCell = networkGrid[newMouseY] && networkGrid[newMouseY][newMouseX];
-    if (targetCell && targetCell.type !== 'empty') {
-      setMousePosition({ x: newMouseX, y: newMouseY });
+    if (mouseNode && playerNode) {
+      // Simple pathfinding - move towards mouse
+      const dx = mouseNode.x - playerNode.x;
+      const dy = mouseNode.y - playerNode.y;
       
-      if (newMouseX === 9 && newMouseY === 9) {
-        setMainframeCompromised(100);
-        setGameState('game-over');
-      }
-      
-      const mouseCollectible = collectibles.find(c => c.x === newMouseX && c.y === newMouseY && !c.collected);
-      if (mouseCollectible) {
-        setCollectibles(prev => prev.map(c => 
-          c.x === newMouseX && c.y === newMouseY ? { ...c, collected: true } : c
-        ));
-        setMainframeCompromised(prev => Math.min(100, prev + 20));
+      if (Math.abs(dx) > Math.abs(dy)) {
+        setPlayerPosition(prev => ({ x: prev.x + Math.sign(dx) * 50, y: prev.y }));
+      } else {
+        setPlayerPosition(prev => ({ x: prev.x, y: prev.y + Math.sign(dy) * 50 }));
       }
     }
+  };
+
+  const disconnectNode = () => {
+    const nearestNode = findNearestNode(playerPosition);
+    if (nearestNode && nearestNode.type !== 'mainframe' && !disconnectedNodes.includes(nearestNode.id)) {
+      setDisconnectedNodes(prev => [...prev, nearestNode.id]);
+    }
+  };
+
+  const scanArea = () => {
+    // Visual effect - could add temporary highlighting
+    console.log("Scanning area...");
   };
 
   useEffect(() => {
+    initializeNetwork(currentLevel);
+  }, [currentLevel]);
+
+  useEffect(() => {
     if (gameState === 'playing') {
-      if (playerPosition.x === mousePosition.x && playerPosition.y === mousePosition.y) {
+      const playerNode = findNearestNode(playerPosition);
+      const mouseNode = findNearestNode(mousePosition);
+      
+      if (playerNode && mouseNode && playerNode.id === mouseNode.id) {
         setGameState('level-complete');
         setCyberCoins(prev => prev + 100);
       }
@@ -375,17 +527,155 @@ const HackittyGame = () => {
     }
   };
 
-  const getNodeColor = (nodeType) => {
+  const getNodeColor = (nodeType, isMainframe, compromised) => {
+    if (nodeType === 'mainframe') {
+      return compromised > 0 ? '#ef4444' : '#60a5fa'; // Red when compromised, blue-white when safe
+    }
+    
     switch (nodeType) {
-      case 'workstation': return 'text-blue-400';
-      case 'smartphone': return 'text-green-400';
-      case 'server': return 'text-purple-400';
-      case 'router': return 'text-orange-400';
-      case 'switch': return 'text-yellow-400';
-      case 'mainframe': return 'text-red-400';
-      default: return 'text-gray-400';
+      case 'workstation': return '#60a5fa';
+      case 'smartphone': return '#34d399';
+      case 'server': return '#a78bfa';
+      case 'router': return '#fb923c';
+      case 'switch': return '#fbbf24';
+      default: return '#9ca3af';
     }
   };
+
+  const NetworkDiagram = () => (
+    <div className="bg-gray-900 p-4 rounded-lg border border-cyan-500">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-cyan-400 font-semibold">{text[language].networkNodes}</h3>
+        <div className="flex items-center">
+          <span className="text-sm mr-2">{text[language].mainframeStatus}:</span>
+          <div className="w-24 h-3 bg-gray-700 rounded-full">
+            <div 
+              className={`h-full rounded-full transition-all duration-500 ${
+                mainframeCompromised > 60 ? 'bg-red-500' : 
+                mainframeCompromised > 30 ? 'bg-yellow-500' : 'bg-green-500'
+              }`}
+              style={{ width: `${mainframeCompromised}%` }}
+            />
+          </div>
+          <span className="text-sm ml-2">{mainframeCompromised}%</span>
+        </div>
+      </div>
+      
+      <svg 
+        ref={svgRef}
+        viewBox="0 0 200 700" 
+        className="w-full h-96 bg-black rounded border border-gray-700"
+      >
+        {/* Draw connections */}
+        {networkConnections.map((conn, index) => {
+          const fromNode = networkNodes.find(n => n.id === conn.from);
+          const toNode = networkNodes.find(n => n.id === conn.to);
+          
+          if (!fromNode || !toNode) return null;
+          
+          const isDisconnected = disconnectedNodes.includes(conn.from) || disconnectedNodes.includes(conn.to);
+          const isBlocked = blockedNodes.includes(conn.from) || blockedNodes.includes(conn.to);
+          
+          return (
+            <line
+              key={index}
+              x1={fromNode.x}
+              y1={fromNode.y}
+              x2={toNode.x}
+              y2={toNode.y}
+              stroke={isDisconnected ? '#ef4444' : isBlocked ? '#fbbf24' : '#06b6d4'}
+              strokeWidth={isDisconnected ? 1 : isBlocked ? 3 : 2}
+              strokeDasharray={isDisconnected ? '5,5' : 'none'}
+              opacity={isDisconnected ? 0.5 : 1}
+            />
+          );
+        })}
+        
+        {/* Draw nodes */}
+        {networkNodes.map(node => {
+          const NodeIcon = getNodeIcon(node.type);
+          const isPlayer = Math.abs(playerPosition.x - node.x) < 20 && Math.abs(playerPosition.y - node.y) < 20;
+          const isMouse = Math.abs(mousePosition.x - node.x) < 20 && Math.abs(mousePosition.y - node.y) < 20;
+          const isBlocked = blockedNodes.includes(node.id);
+          const isDisconnected = disconnectedNodes.includes(node.id);
+          const collectible = collectibles.find(c => c.nodeId === node.id && !c.collected);
+          
+          return (
+            <g key={node.id}>
+              {/* Node background */}
+              <circle
+                cx={node.x}
+                cy={node.y}
+                r={15}
+                fill={getNodeColor(node.type, node.type === 'mainframe', mainframeCompromised)}
+                stroke={isPlayer ? '#06b6d4' : isMouse ? '#ef4444' : '#374151'}
+                strokeWidth={isPlayer || isMouse ? 3 : 1}
+                opacity={isDisconnected ? 0.3 : 1}
+              />
+              
+              {/* Firewall shield overlay */}
+              {isBlocked && (
+                <circle
+                  cx={node.x}
+                  cy={node.y}
+                  r={18}
+                  fill="none"
+                  stroke="#fbbf24"
+                  strokeWidth={2}
+                  strokeDasharray="3,3"
+                />
+              )}
+              
+              {/* Node label */}
+              <text
+                x={node.x}
+                y={node.y - 25}
+                textAnchor="middle"
+                className="fill-white text-xs"
+                fontSize="10"
+              >
+                {node.name}
+              </text>
+              
+              {/* Collectible */}
+              {collectible && (
+                <text
+                  x={node.x + 20}
+                  y={node.y - 10}
+                  textAnchor="middle"
+                  fontSize="16"
+                >
+                  {collectible.icon}
+                </text>
+              )}
+              
+              {/* Player and Mouse */}
+              {isPlayer && (
+                <text
+                  x={node.x}
+                  y={node.y + 5}
+                  textAnchor="middle"
+                  fontSize="16"
+                >
+                  🐱
+                </text>
+              )}
+              {isMouse && (
+                <text
+                  x={node.x}
+                  y={node.y + 5}
+                  textAnchor="middle"
+                  fontSize="16"
+                >
+                  🐭
+                </text>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
 
   const Logo = () => (
     <div className="flex items-center justify-center mb-4">
@@ -409,76 +699,6 @@ const HackittyGame = () => {
       <div>
         <h1 className="text-4xl font-bold text-cyan-400 tracking-wider">{text[language].title}</h1>
         <p className="text-cyan-300 text-sm">{text[language].subtitle}</p>
-      </div>
-    </div>
-  );
-
-  const NetworkBoard = () => (
-    <div className="bg-gray-900 p-4 rounded-lg border border-cyan-500">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-cyan-400 font-semibold">{text[language].networkNodes}</h3>
-        <div className="flex items-center">
-          <span className="text-sm mr-2">{text[language].mainframeStatus}:</span>
-          <div className="w-24 h-3 bg-gray-700 rounded-full">
-            <div 
-              className={`h-full rounded-full transition-all duration-500 ${
-                mainframeCompromised > 60 ? 'bg-red-500' : 
-                mainframeCompromised > 30 ? 'bg-yellow-500' : 'bg-green-500'
-              }`}
-              style={{ width: `${mainframeCompromised}%` }}
-            />
-          </div>
-          <span className="text-sm ml-2">{mainframeCompromised}%</span>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-10 gap-1 mb-4" style={{ maxWidth: '500px', margin: '0 auto' }}>
-        {networkGrid.map((row, y) =>
-          row.map((cell, x) => {
-            const isPlayer = playerPosition.x === x && playerPosition.y === y;
-            const isMouse = mousePosition.x === x && mousePosition.y === y;
-            const collectible = collectibles.find(c => c.x === x && c.y === y && !c.collected);
-            const NodeIcon = getNodeIcon(cell.type);
-            
-            return (
-              <div
-                key={`${x}-${y}`}
-                className={`aspect-square flex items-center justify-center text-xs border relative
-                  ${cell.type === 'empty' ? 'border-gray-800 bg-gray-900' : 
-                    cell.type === 'path' ? 'border-cyan-700 bg-cyan-900/20' :
-                    'border-gray-600 bg-gray-800'}
-                  ${isPlayer ? 'ring-2 ring-cyan-400' : ''}
-                  ${isMouse ? 'ring-2 ring-red-400' : ''}
-                  ${cell.type === 'mainframe' ? 'bg-red-900/50 ring-2 ring-red-500' : ''}
-                `}
-              >
-                {cell.type === 'path' && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-1 h-full bg-cyan-400/50" />
-                    <div className="absolute w-full h-1 bg-cyan-400/50" />
-                  </div>
-                )}
-                
-                {NodeIcon && (
-                  <NodeIcon 
-                    className={`w-4 h-4 ${getNodeColor(cell.type)} ${
-                      cell.type === 'mainframe' ? 'animate-pulse' : ''
-                    }`} 
-                  />
-                )}
-                
-                {collectible && (
-                  <span className="absolute top-0 right-0 text-xs transform translate-x-1 -translate-y-1">
-                    {collectible.icon}
-                  </span>
-                )}
-                
-                {isPlayer && <span className="absolute text-lg z-10">🐱</span>}
-                {isMouse && <span className="absolute text-lg z-10">🐭</span>}
-              </div>
-            );
-          })
-        )}
       </div>
     </div>
   );
@@ -582,6 +802,19 @@ const HackittyGame = () => {
                 </div>
                 <div className="text-gray-300 mb-1">{skill.concept[language]}</div>
                 <div className="text-green-400">{skill.skill[language]}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {mouseInventory.length > 0 && (
+        <div>
+          <h4 className="text-red-400 font-semibold mb-2">Mouse Abilities</h4>
+          <div className="space-y-1">
+            {mouseInventory.map((ability, index) => (
+              <div key={index} className="bg-red-900/20 p-1 rounded text-xs text-red-300">
+                {ability.replace('_', ' ').toUpperCase()}
               </div>
             ))}
           </div>
@@ -696,7 +929,7 @@ const HackittyGame = () => {
 
         <div className="grid lg:grid-cols-4 gap-6">
           <div className="lg:col-span-2">
-            <NetworkBoard />
+            <NetworkDiagram />
           </div>
           
           <div>
